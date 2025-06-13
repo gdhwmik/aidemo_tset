@@ -9,7 +9,9 @@
 
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
-const {GoogleGenAI} = require("@google/genai");
+const {onSchedule} = require("firebase-functions/v2/scheduler");
+const {VertexAI} = require("@google-cloud/vertexai");
+const vertexai = new VertexAI({project: "aidemo-jayden-a3d67", location: "us-central1"});
 admin.initializeApp();
 
 // helloWorld
@@ -25,66 +27,43 @@ exports.addNote = functions.https.onRequest(async (req, res) => {
 });
 
 // dailyGemini
-const text = `請用繁體中文寫一句有象徵意義的短語（不超過20字），
+const prompt = `請用繁體中文寫一句有象徵意義的短語（不超過20字），
 主題與AI、學習、創造力或未來有關。
 風格要像詩句、嚴言、或書法對聯那樣簡練而有畫面感，
 讓人看完會引發思考，不要使用口號語氣或直白描述。
 請只回一句話。`;
-exports.dailyGeminiInspiration = functions.pubsub.schedule("every 24 hours").onRun(async () => {
-  const ai = new GoogleGenAI({
-    vertexai: true,
-    project: "aidemo-jayden-a3d67",
-    location: "us-central1",
-  });
-
+exports.dailyGeminiInspiration = onSchedule("every 24 hours", async (event) => {
   const model = "gemini-1.5-flash";
-
-  const generationConfig = {
-    maxOutputTokens: 512,
-    temperature: 0.8,
-    topP: 1,
+  const generativeModel = vertexai.getGenerativeModel({
+    model: model,
+    generationConfig: {
+      maxOutputTokens: 256,
+      temperature: 0.9,
+    },
     safetySettings: [
       {category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_LOW_AND_ABOVE"},
-      {category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_LOW_AND_ABOVE"},
-      {category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_LOW_AND_ABOVE"},
-      {category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_LOW_AND_ABOVE"},
     ],
-  };
+  });
 
-  const req = {
-    model,
-    contents: [
-      {
-        role: "user",
-        parts: [
-          {
-            text,
-          },
-        ],
-      },
-    ],
-    config: generationConfig,
-  };
+  const result = await generativeModel.generateContent({
+    contents: [{role: "user", parts: [{text: prompt}]}],
+  });
 
+  let text = "(產生失敗)";
   try {
-    const streamingResp = await ai.models.generateContentStream(req);
-    let result = "";
-
-    for await (const chunk of streamingResp) {
-      if (chunk.text) result += chunk.text;
-    }
-
-    const date = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
-    await admin.firestore().collection("inspirations").doc(date).set({
-      text: result,
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
-    });
-
-    console.log(`✅ 成功儲存語錄：${result}`);
-  } catch (err) {
-    console.error("❌ 生成語錄時發生錯誤：", err.message);
+    text = result.response.candidates[0].content.parts[0].text || text;
+  } catch (e) {
+    console.warn("⚠️ 回應結構異常，已使用預設語錄");
   }
+  const date = new Date().toISOString().split("T")[0];
+  await admin.firestore().collection("inspirations").doc(date).set({
+    text,
+    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+  });
+
+  console.log("✅ 成功儲存語錄：", text);
 });
+
 
 // test
 exports.testGeminiInspiration = functions.https.onRequest(async (req, res) => {
