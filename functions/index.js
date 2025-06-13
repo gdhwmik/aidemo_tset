@@ -10,7 +10,7 @@
 const functions = require("firebase-functions");
 
 exports.helloWorld = functions.https.onRequest((req, res) => {
-  res.json({msg: "Hello, Susie!"});
+  res.json({msg: "Hello, Jayden!"});
 });
 
 
