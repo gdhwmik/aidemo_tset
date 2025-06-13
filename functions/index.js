@@ -9,27 +9,27 @@
 
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
-const { GoogleGenAI } = require("@google/genai");
+const {GoogleGenAI} = require("@google/genai");
 admin.initializeApp();
 
-//helloWorld
+// helloWorld
 exports.helloWorld = functions.https.onRequest((req, res) => {
   res.json({msg: "Hello, Jayden!"});
 });
 
-//addNote
+// addNote
 exports.addNote = functions.https.onRequest(async (req, res) => {
   const text = req.query.text || "empty";
   const docRef = await admin.firestore().collection("notes").add({text, ts: Date.now()});
   res.json({id: docRef.id, text});
 });
 
-//dailyGemini
+// dailyGemini
 const text = `請用繁體中文寫一句有象徵意義的短語（不超過20字），
 主題與AI、學習、創造力或未來有關。
 風格要像詩句、嚴言、或書法對聯那樣簡練而有畫面感，
 讓人看完會引發思考，不要使用口號語氣或直白描述。
-請只回一句話。`
+請只回一句話。`;
 exports.dailyGeminiInspiration = functions.pubsub.schedule("every 24 hours").onRun(async () => {
   const ai = new GoogleGenAI({
     vertexai: true,
@@ -86,9 +86,9 @@ exports.dailyGeminiInspiration = functions.pubsub.schedule("every 24 hours").onR
   }
 });
 
-//test
+// test
 exports.testGeminiInspiration = functions.https.onRequest(async (req, res) => {
-  //使用上方相同邏輯來生成語錄
+  // 使用上方相同邏輯來生成語錄
   res.send("這是測試用的 Gemini 語錄函式，可以成功觸發就代表模型正常運作");
 });
 
