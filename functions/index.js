@@ -44,10 +44,10 @@ exports.dailyGeminiInspiration = functions.pubsub.schedule("every 24 hours").onR
     temperature: 0.8,
     topP: 1,
     safetySettings: [
-      { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_LOW_AND_ABOVE" },
-      { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_LOW_AND_ABOVE" },
-      { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_LOW_AND_ABOVE" },
-      { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_LOW_AND_ABOVE" },
+      {category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_LOW_AND_ABOVE"},
+      {category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_LOW_AND_ABOVE"},
+      {category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_LOW_AND_ABOVE"},
+      {category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_LOW_AND_ABOVE"},
     ],
   };
 
@@ -58,7 +58,7 @@ exports.dailyGeminiInspiration = functions.pubsub.schedule("every 24 hours").onR
         role: "user",
         parts: [
           {
-            text
+            text,
           },
         ],
       },
@@ -88,10 +88,9 @@ exports.dailyGeminiInspiration = functions.pubsub.schedule("every 24 hours").onR
 
 //test
 exports.testGeminiInspiration = functions.https.onRequest(async (req, res) => {
-  // 使用上方相同邏輯來生成語錄
+  //使用上方相同邏輯來生成語錄
   res.send("這是測試用的 Gemini 語錄函式，可以成功觸發就代表模型正常運作");
 });
-
 
 
 // Create and deploy your first functions
