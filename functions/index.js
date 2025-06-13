@@ -18,8 +18,8 @@ admin.initializeApp();
 
 exports.addNote = functions.https.onRequest(async (req, res) => {
   const text = req.query.text || "empty";
-  const docRef = await admin.firestore().collection("notes").add({ text, ts: Date.now() });
-  res.json({ id: docRef.id, text });
+  const docRef = await admin.firestore().collection("notes").add({text, ts: Date.now()});
+  res.json({id: docRef.id, text});
 });
 
 
