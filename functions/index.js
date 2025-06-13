@@ -13,6 +13,15 @@ exports.helloWorld = functions.https.onRequest((req, res) => {
   res.json({msg: "Hello, Jayden!"});
 });
 
+const admin = require("firebase-admin");
+admin.initializeApp();
+
+exports.addNote = functions.https.onRequest(async (req, res) => {
+  const text = req.query.text || "empty";
+  const docRef = await admin.firestore().collection("notes").add({ text, ts: Date.now() });
+  res.json({ id: docRef.id, text });
+});
+
 
 // Create and deploy your first functions
 // https://firebase.google.com/docs/functions/get-started
